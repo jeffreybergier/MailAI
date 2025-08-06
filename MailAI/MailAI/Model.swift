@@ -17,3 +17,10 @@
 //
 
 import Foundation
+
+public struct Message: Identifiable, Hashable, Codable, Sendable {
+  public var id: String
+  public var headers: String
+  public var subject: String
+  public var content: String
+}
