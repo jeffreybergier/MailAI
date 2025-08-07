@@ -21,6 +21,7 @@ import Foundation
 public struct MailInterface: Sendable {
   
   public var messages: [Message] = []
+  public var error: MailInterfaceError?
   
   public init() { }
   
@@ -28,9 +29,13 @@ public struct MailInterface: Sendable {
     let appleScript = NSAppleScript(source: kScriptString)
     var error: NSDictionary?
     let result = appleScript?.executeAndReturnError(&error).stringValue
-    let messages = try! Message.messages(fromAppleEvent: result ?? "")
-    self.messages = messages
-    NSLog("")
+    do {
+      let messages = try Message.messages(fromAppleEvent: result ?? "")
+      self.messages = messages
+      self.error = nil
+    } catch {
+      self.error = error
+    }
   }
 }
 

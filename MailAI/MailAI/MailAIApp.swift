@@ -30,18 +30,51 @@ struct MailAIApp: App {
 struct ContentView: View {
   
   @State private var interface = MailInterface()
+  @State private var selection: Message?
   
   var body: some View {
-    VStack {
-      Image(systemName: "globe")
-        .imageScale(.large)
-        .foregroundStyle(.tint)
-      Text("Hello, world!")
-      Button("Go!!!") {
-        self.interface.getSelected()
+    NavigationSplitView {
+      List(self.interface.messages,
+           selection:self.$selection)
+      { message in
+        Text(message.subject)
+          .lineLimit(1)
+          .tag(message)
+      }
+    } detail: {
+      if let selection {
+        ScrollView {
+          Form {
+            Section("Mail ID") {
+              Button {
+                NSWorkspace.shared.open(URL(string: "message:\(selection.id)")!)
+              } label: {
+                Text(selection.id)
+                  .lineLimit(1)
+              }
+              .buttonStyle(.link)
+            }
+            Section("Mail") {
+              Text(selection.subject)
+                .font(.headline)
+              Text(selection.content)
+            }
+            Section("Headers") {
+              Text(selection.headers)
+            }
+          }
+          .padding()
+          .font(.body)
+        }
       }
     }
-    .padding()
+    .toolbar {
+      ToolbarItem {
+        Button("Refresh") {
+          self.interface.getSelected()
+        }
+      }
+    }
   }
 }
 
