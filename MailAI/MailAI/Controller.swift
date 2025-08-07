@@ -21,20 +21,36 @@ import FoundationModels
 
 public struct AIInterface: Sendable {
   public func analyze(message: Message) async throws -> Analysis {
+    let canUse = SystemLanguageModel.default.availability
+    switch canUse {
+    case .unavailable(let reason):
+      fatalError(String(describing: reason))
+    case .available:
+      break
+    }
+
     let session = LanguageModelSession(instructions:
     """
-    You are a mail categorizing robot. In each prompt I will provide you an email
-    message. I will provide you the Subject, the Content, as well as the full 
-    headers of the email. I want you to use this information to categorize the 
-    email for me. Please check hard, especially consider the headers as they 
-    provide a lot of information that is hard for the user to see on their own. 
-    This is critical because the user will use your analysis to clean up their 
-    email which will save them gigabytes of space.
+    You are a mail categorizing robot. In each prompt I will provide you an 
+    email message. I will provide you the Subject, the Content, and the Headers 
+    of the email. The headers give you extra context that the user cannot see 
+    Your analysis is critical because the user will use your analysis to clean 
+    up their email which will save them gigabytes of space. I will also provide 
+    basic information about the user like their name and their employers so that 
+    you know if this message is related to them or their work.
     """)
+    
+    let prompt =
+    """
+    Subject: \(message.subject)
+    Content: \(message.content.prefix(2000))
+    Headers: \(message.headers.prefix(1000))
+    """
     let response = try await session.respond(
-        to: String(describing: message),
-        generating: Analysis.self
+      to: prompt,
+      generating: Analysis.self
     )
+    NSLog(String(describing: response.content))
     return response.content
   }
 }

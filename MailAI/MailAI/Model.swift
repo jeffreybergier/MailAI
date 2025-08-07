@@ -31,17 +31,18 @@ public struct Analysis: Hashable, Codable, Sendable {
   
   @Generable(description: """
 The category that best fits the email. 
-Spam is for spam or advertising content. 
-Newsletters are for advertising or messages that are received on a schedule. 
+Spam is for spam or advertising content that is has not been requested by the user. 
+Newsletters are for advertising or messages that are received on a daily, weekly, or monthly schedule. 
 Adult is for topics like pornography, guns, drugs, or other not safe for work emails. 
 Malicious is for email that contains spams, phishing, identity theft, etc. 
 Calendar is for email that is related to recieving, accepting, or sending calendar invites. 
 CorrespondanceFriends is for conversations between friends. 
 CorrespondanceWork is for conversations between coworkers or other email that looks work related. 
+ActionRequired is for emails that require action from the user such as tax, bank, service provider, insurance, or other items that need quick action.
 Unknown is for when the email seems to fit no other category.
 """)
   public enum Category: Hashable, Codable, Sendable {
-    case spam, newsletters, adult, malicious, calendar, correspondanceFriends, correspondanceWork, unknown
+    case spam, newsletters, adult, malicious, calendar, correspondanceFriends, correspondanceWork, actionRequired, unknown
   }
   
   @Guide(description: "The category that best fits the email you have been provided")
