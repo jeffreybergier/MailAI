@@ -18,6 +18,9 @@
 
 import Foundation
 
+private let kMailRowSeparator = "RrRrRr"
+private let kMailColumnSeparator = "CcCcCc"
+
 public struct MailInterface: Sendable {
   
   public var messages: [Message] = []
@@ -28,13 +31,20 @@ public struct MailInterface: Sendable {
   public mutating func getSelected() {
     let appleScript = NSAppleScript(source: kScriptString)
     var error: NSDictionary?
-    let result = appleScript?.executeAndReturnError(&error).stringValue
+    let result: String?
+    if let __FAKE_DATA {
+      result = __FAKE_DATA
+    } else {
+      result = appleScript?.executeAndReturnError(&error).stringValue
+    }
     do {
       let messages = try Message.messages(fromAppleEvent: result ?? "")
+      NSLog("MailInterface: [Success] \(messages.count)")
       self.messages = messages
       self.error = nil
     } catch {
       self.error = error
+      NSLog("MailInterface: [Error] \(error)")
     }
   }
 }
@@ -47,7 +57,7 @@ extension Message {
   internal static func messages(fromAppleEvent input: String) throws(MailInterfaceError) -> [Message] {
     // TODO: Using Map here does not work because of typed throws
     // return try input.split(separator: "RrRrRr").map { try Message(fromAppleEventRow: $0) }
-    let rows = input.split(separator: "RrRrRr")
+    let rows = input.split(separator: kMailRowSeparator)
     guard !rows.isEmpty else { throw .resultsParse }
     var output: [Message] = []
     for row in rows {
@@ -56,7 +66,7 @@ extension Message {
     return output
   }
   internal init<S: StringProtocol>(fromAppleEventRow row: S) throws(MailInterfaceError) {
-    let items = row.split(separator: "CcCcCc")
+    let items = row.split(separator: kMailColumnSeparator)
     guard items.count == 4 else {
       throw MailInterfaceError.resultsParse
     }
@@ -82,14 +92,16 @@ tell application "Mail"
     set theContent to content of msg
     
     set row to ""
-    set row to row & theID & "CcCcCc"
-    set row to row & theHeaders & "CcCcCc"
-    set row to row & theSubject & "CcCcCc"
+    set row to row & theID & "\(kMailColumnSeparator)"
+    set row to row & theHeaders & "\(kMailColumnSeparator)"
+    set row to row & theSubject & "\(kMailColumnSeparator)"
     set row to row & theContent
     
-    set output to output & row & "RrRrRr"
+    set output to output & row & "\(kMailRowSeparator)"
   end repeat
 end tell
 
 return output
 """
+
+private let __FAKE_DATA: String? = nil
