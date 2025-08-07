@@ -17,6 +17,27 @@
 //
 
 import Foundation
+import FoundationModels
+
+public struct AIInterface: Sendable {
+  public func analyze(message: Message) async throws -> Analysis {
+    let session = LanguageModelSession(instructions:
+    """
+    You are a mail categorizing robot. In each prompt I will provide you an email
+    message. I will provide you the Subject, the Content, as well as the full 
+    headers of the email. I want you to use this information to categorize the 
+    email for me. Please check hard, especially consider the headers as they 
+    provide a lot of information that is hard for the user to see on their own. 
+    This is critical because the user will use your analysis to clean up their 
+    email which will save them gigabytes of space.
+    """)
+    let response = try await session.respond(
+        to: String(describing: message),
+        generating: Analysis.self
+    )
+    return response.content
+  }
+}
 
 private let kMailRowSeparator = "RrRrRr"
 private let kMailColumnSeparator = "CcCcCc"

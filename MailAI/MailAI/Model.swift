@@ -17,10 +17,35 @@
 //
 
 import Foundation
+import FoundationModels
 
 public struct Message: Identifiable, Hashable, Codable, Sendable {
   public var id: String
   public var headers: String
   public var subject: String
   public var content: String
+}
+
+@Generable
+public struct Analysis: Hashable, Codable, Sendable {
+  
+  @Generable(description: """
+The category that best fits the email. 
+Spam is for spam or advertising content. 
+Newsletters are for advertising or messages that are received on a schedule. 
+Adult is for topics like pornography, guns, drugs, or other not safe for work emails. 
+Malicious is for email that contains spams, phishing, identity theft, etc. 
+Calendar is for email that is related to recieving, accepting, or sending calendar invites. 
+CorrespondanceFriends is for conversations between friends. 
+CorrespondanceWork is for conversations between coworkers or other email that looks work related. 
+Unknown is for when the email seems to fit no other category.
+""")
+  public enum Category: Hashable, Codable, Sendable {
+    case spam, newsletters, adult, malicious, calendar, correspondanceFriends, correspondanceWork, unknown
+  }
+  
+  @Guide(description: "The category that best fits the email you have been provided")
+  public var category: Category
+  @Guide(description: "The reason you think this email fits into the category")
+  public var explanation: String
 }

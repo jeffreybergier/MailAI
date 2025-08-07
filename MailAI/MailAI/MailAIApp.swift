@@ -29,17 +29,29 @@ struct MailAIApp: App {
 
 struct ContentView: View {
   
-  @State private var interface = MailInterface()
+  @State private var ai = AIInterface()
+  @State private var mail = MailInterface()
   @State private var selection: Message?
   
   var body: some View {
     NavigationSplitView {
-      List(self.interface.messages,
+      List(self.mail.messages,
            selection:self.$selection)
       { message in
-        Text(message.subject)
-          .lineLimit(1)
-          .tag(message)
+        HStack {
+          Text(message.subject)
+            .lineLimit(1)
+          Button("Go") {
+            Task {
+              do {
+                try await self.ai.analyze(message: message)
+              } catch {
+                NSLog(error.localizedDescription)
+              }
+            }
+          }
+        }
+        .tag(message)
       }
     } detail: {
       if let selection {
@@ -71,7 +83,7 @@ struct ContentView: View {
     .toolbar {
       ToolbarItem {
         Button("Refresh") {
-          self.interface.getSelected()
+          self.mail.getSelected()
         }
       }
     }
