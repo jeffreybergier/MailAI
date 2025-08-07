@@ -27,44 +27,64 @@ public struct MailInterface: Sendable {
   public mutating func getSelected() {
     let appleScript = NSAppleScript(source: kScriptString)
     var error: NSDictionary?
-    let result = appleScript?.executeAndReturnError(&error)
-
-    let jsonString = result?.stringValue
-    let jsonData = jsonString?.data(using: .utf8)
-    
-    guard let jsonData else { fatalError(String(describing: error!)) }
-    let messages = try! JSONDecoder().decode([Message].self, from: jsonData)
+    let result = appleScript?.executeAndReturnError(&error).stringValue
+    let messages = try! Message.messages(fromAppleEvent: result ?? "")
     self.messages = messages
+    NSLog("")
   }
-  
+}
+
+public enum MailInterfaceError: Error {
+  case resultsParse
+}
+
+extension Message {
+  internal static func messages(fromAppleEvent input: String) throws(MailInterfaceError) -> [Message] {
+    // TODO: Using Map here does not work because of typed throws
+    // return try input.split(separator: "RrRrRr").map { try Message(fromAppleEventRow: $0) }
+    let rows = input.split(separator: "RrRrRr")
+    guard !rows.isEmpty else { throw .resultsParse }
+    var output: [Message] = []
+    for row in rows {
+      try output.append(Message(fromAppleEventRow: row))
+    }
+    return output
+  }
+  internal init<S: StringProtocol>(fromAppleEventRow row: S) throws(MailInterfaceError) {
+    let items = row.split(separator: "CcCcCc")
+    guard items.count == 4 else {
+      throw MailInterfaceError.resultsParse
+    }
+    self.id      = String(items[0])
+    self.headers = String(items[1])
+    self.subject = String(items[2])
+    self.content = String(items[3])
+  }
 }
 
 internal let kScriptString =
 """
-set output to "["
+set output to ""
 
 tell application "Mail"
   set selectedMessages to selection
   repeat with i from 1 to count of selectedMessages
     set msg to item i of selectedMessages
+    
     set theID to message id of msg
     set theHeaders to all headers of msg
     set theSubject to subject of msg
     set theContent to content of msg
     
-    set jsonItem to "{"
-    set jsonItem to jsonItem & "id: " & quoted form of theID & ", "
-    set jsonItem to jsonItem & "headers: " & quoted form of theHeaders & ", "
-    set jsonItem to jsonItem & "subject: " & quoted form of theSubject & ", "
-    set jsonItem to jsonItem & "content: " & quoted form of theContent & "}"
+    set row to ""
+    set row to row & theID & "CcCcCc"
+    set row to row & theHeaders & "CcCcCc"
+    set row to row & theSubject & "CcCcCc"
+    set row to row & theContent
     
-    set output to output & jsonItem
-    if i < (count of selectedMessages) then
-      set output to output & ", "
-    end if
+    set output to output & row & "RrRrRr"
   end repeat
 end tell
 
-set output to output & "]"
 return output
 """
