@@ -31,7 +31,7 @@ struct ContentView: View {
   
   @State private var ai = AIInterface()
   @State private var mail = MailInterface()
-  @State private var selection: Message?
+  @State private var selection: MessageForAnalysis?
   
   var body: some View {
     NavigationSplitView {

@@ -20,7 +20,7 @@ import Foundation
 import FoundationModels
 
 public struct AIInterface: Sendable {
-  public func analyze(message: Message) async throws -> Analysis {
+  public func analyze(message: MessageForAnalysis) async throws -> MessageAnalysis {
     let canUse = SystemLanguageModel.default.availability
     switch canUse {
     case .unavailable(let reason):
@@ -48,7 +48,7 @@ public struct AIInterface: Sendable {
     """
     let response = try await session.respond(
       to: prompt,
-      generating: Analysis.self
+      generating: MessageAnalysis.self
     )
     NSLog(String(describing: response.content))
     return response.content
@@ -60,7 +60,7 @@ private let kMailColumnSeparator = "CcCcCc"
 
 public struct MailInterface: Sendable {
   
-  public var messages: [Message] = []
+  public var messages: [MessageForAnalysis] = []
   public var error: MailInterfaceError?
   
   public init() { }
@@ -75,7 +75,7 @@ public struct MailInterface: Sendable {
       result = appleScript?.executeAndReturnError(&error).stringValue
     }
     do {
-      let messages = try Message.messages(fromAppleEvent: result ?? "")
+      let messages = try MessageForAnalysis.messages(fromAppleEvent: result ?? "")
       NSLog("MailInterface: [Success] \(messages.count)")
       self.messages = messages
       self.error = nil
@@ -90,15 +90,15 @@ public enum MailInterfaceError: Error {
   case resultsParse
 }
 
-extension Message {
-  internal static func messages(fromAppleEvent input: String) throws(MailInterfaceError) -> [Message] {
+extension MessageForAnalysis {
+  internal static func messages(fromAppleEvent input: String) throws(MailInterfaceError) -> [MessageForAnalysis] {
     // TODO: Using Map here does not work because of typed throws
     // return try input.split(separator: "RrRrRr").map { try Message(fromAppleEventRow: $0) }
     let rows = input.split(separator: kMailRowSeparator)
     guard !rows.isEmpty else { throw .resultsParse }
-    var output: [Message] = []
+    var output: [MessageForAnalysis] = []
     for row in rows {
-      try output.append(Message(fromAppleEventRow: row))
+      try output.append(MessageForAnalysis(fromAppleEventRow: row))
     }
     return output
   }

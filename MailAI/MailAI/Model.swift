@@ -17,17 +17,48 @@
 //
 
 import Foundation
-import FoundationModels
 
-public struct Message: Identifiable, Hashable, Codable, Sendable {
-  public var id: String
-  public var headers: String
+public struct MessageForAnalysis: Identifiable, Hashable, Codable, Sendable {
+  
+  public var id: String // uniqueID in AppleScript
+  public var deviceID: String
+  public var mailbox: String
+  public var account: String
   public var subject: String
   public var content: String
+  public var headers: String
+  
+  public var url: URL {
+    let encoded = self.id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!
+    let urlString = "message://%3C" + encoded + "%3E"
+    return URL(string:urlString)!
+  }
 }
 
+import SwiftData
+
+@Model
+public final class MessageForStorage {
+  @Attribute(.unique)
+  public var id: String // uniqueID in AppleScript
+  public var deviceID: String
+  public var mailbox: String
+  public var account: String
+  public var subject: String
+  public init(id: String, deviceID: String, mailbox: String, account: String, subject: String) {
+    self.id = id
+    self.deviceID = deviceID
+    self.mailbox = mailbox
+    self.account = account
+    self.subject = subject
+  }
+}
+
+
+import FoundationModels
+
 @Generable
-public struct Analysis: Hashable, Codable, Sendable {
+public struct MessageAnalysis: Hashable, Codable, Sendable {
   
   @Generable(description: """
 The category that best fits the email. 
