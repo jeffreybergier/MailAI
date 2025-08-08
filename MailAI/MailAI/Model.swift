@@ -21,7 +21,7 @@ import Foundation
 public struct MessageForAnalysis: Identifiable, Hashable, Codable, Sendable {
   
   public var id: String // uniqueID in AppleScript
-  public var deviceID: String
+  public var deviceID: Int
   public var mailbox: String
   public var account: String
   public var subject: String

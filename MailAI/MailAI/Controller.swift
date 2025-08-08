@@ -17,6 +17,86 @@
 //
 
 import Foundation
+
+public struct MailInterface: Sendable {
+  
+  public var messages: [MessageForAnalysis] = []
+  public var error: MailInterfaceError?
+  
+  public init() { }
+  
+  public mutating func getSelected() {
+    var error: NSDictionary?
+    let descriptor = NSAppleScript(source: kScriptString)!.executeAndReturnError(&error)
+    if let error { assertionFailure(String(describing: error)) }
+    do {
+      let messages = try MessageForAnalysis.messages(fromArray: descriptor)
+      NSLog("MailInterface: [Success] \(messages.count)")
+      self.messages = messages
+      self.error = nil
+    } catch {
+      self.error = error
+      NSLog("MailInterface: [Error] \(error)")
+    }
+  }
+}
+
+public enum MailInterfaceError: Error {
+  case parsing
+  case execution
+}
+
+extension MessageForAnalysis {
+  internal static func messages(fromArray descriptor: NSAppleEventDescriptor) throws(MailInterfaceError) -> [MessageForAnalysis] {
+    // TODO: Using Map here does not work because of typed throws
+    // return try input.split(separator: "RrRrRr").map { try Message(fromAppleEventRow: $0) }
+    var output = [MessageForAnalysis]()
+    for idx in 0..<descriptor.numberOfItems {
+      guard let record = descriptor.atIndex(idx) else { throw .parsing }
+      let message = try MessageForAnalysis(fromDictionary: record)
+      output.append(message)
+    }
+    return output
+  }
+  internal init(fromDictionary descriptor: NSAppleEventDescriptor) throws(MailInterfaceError) {
+    guard let uniqueID = descriptor.value(forKey: "uniqueID") as? String else { throw .parsing }
+    self.id = uniqueID
+    guard let deviceID = descriptor.value(forKey: "deviceID") as? Int    else { throw .parsing }
+    self.deviceID = deviceID
+    guard let mailbox  = descriptor.value(forKey: "mailbox")  as? String else { throw .parsing }
+    self.mailbox = mailbox
+    guard let account  = descriptor.value(forKey: "account")  as? String else { throw .parsing }
+    self.account = account
+    guard let subject  = descriptor.value(forKey: "subject")  as? String else { throw .parsing }
+    self.subject = subject
+    guard let content  = descriptor.value(forKey: "content")  as? String else { throw .parsing }
+    self.content = content
+    guard let headers  = descriptor.value(forKey: "headers")  as? String else { throw .parsing }
+    self.headers = headers
+  }
+}
+
+internal let kScriptString =
+"""
+set output to {}
+tell application "Mail"
+  set selectedMessages to selection
+  repeat with msg in selectedMessages
+    set theUniqueID to message id of msg
+    set theDeviceID to id of msg
+    set theMailbox to name of mailbox of msg
+    set theAccount to name of account of mailbox of msg
+    set theSubject to subject of msg
+    set theContent to content of msg
+    set theHeaders to all headers of msg
+    set end of output to {uniqueID:theUniqueID, deviceID:theDeviceID, mailbox:theMailbox, account:theAccount, subject:theSubject, content:theContent, header:theHeaders}
+  end repeat
+end tell
+log output
+return output
+"""
+
+
 import FoundationModels
 
 public struct AIInterface: Sendable {
@@ -54,91 +134,3 @@ public struct AIInterface: Sendable {
     return response.content
   }
 }
-
-private let kMailRowSeparator = "RrRrRr"
-private let kMailColumnSeparator = "CcCcCc"
-
-public struct MailInterface: Sendable {
-  
-  public var messages: [MessageForAnalysis] = []
-  public var error: MailInterfaceError?
-  
-  public init() { }
-  
-  public mutating func getSelected() {
-    let appleScript = NSAppleScript(source: kScriptString)
-    var error: NSDictionary?
-    let result: String?
-    if let __FAKE_DATA {
-      result = __FAKE_DATA
-    } else {
-      result = appleScript?.executeAndReturnError(&error).stringValue
-    }
-    do {
-      let messages = try MessageForAnalysis.messages(fromAppleEvent: result ?? "")
-      NSLog("MailInterface: [Success] \(messages.count)")
-      self.messages = messages
-      self.error = nil
-    } catch {
-      self.error = error
-      NSLog("MailInterface: [Error] \(error)")
-    }
-  }
-}
-
-public enum MailInterfaceError: Error {
-  case resultsParse
-}
-
-extension MessageForAnalysis {
-  internal static func messages(fromAppleEvent input: String) throws(MailInterfaceError) -> [MessageForAnalysis] {
-    // TODO: Using Map here does not work because of typed throws
-    // return try input.split(separator: "RrRrRr").map { try Message(fromAppleEventRow: $0) }
-    let rows = input.split(separator: kMailRowSeparator)
-    guard !rows.isEmpty else { throw .resultsParse }
-    var output: [MessageForAnalysis] = []
-    for row in rows {
-      try output.append(MessageForAnalysis(fromAppleEventRow: row))
-    }
-    return output
-  }
-  internal init<S: StringProtocol>(fromAppleEventRow row: S) throws(MailInterfaceError) {
-    let items = row.split(separator: kMailColumnSeparator)
-    guard items.count == 4 else {
-      throw MailInterfaceError.resultsParse
-    }
-    self.id      = String(items[0])
-    self.headers = String(items[1])
-    self.subject = String(items[2])
-    self.content = String(items[3])
-  }
-}
-
-internal let kScriptString =
-"""
-set output to ""
-
-tell application "Mail"
-  set selectedMessages to selection
-  repeat with i from 1 to count of selectedMessages
-    set msg to item i of selectedMessages
-    
-    set theID to message id of msg
-    set theHeaders to all headers of msg
-    set theSubject to subject of msg
-    set theContent to content of msg
-    
-    set row to ""
-    set row to row & theID & "\(kMailColumnSeparator)"
-    set row to row & theHeaders & "\(kMailColumnSeparator)"
-    set row to row & theSubject & "\(kMailColumnSeparator)"
-    set row to row & theContent
-    
-    set output to output & row & "\(kMailRowSeparator)"
-  end repeat
-end tell
-
-return output
-"""
-
-private let __FAKE_DATA: String? = nil
