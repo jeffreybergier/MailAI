@@ -1,3 +1,5 @@
+// swift-tools-version: 6.2
+
 //
 // GPLv3 License Notice
 //
@@ -16,24 +18,23 @@
 // along with MailAI. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import SwiftUI
+import PackageDescription
 
-@main
-struct MailAIApp: App {
-  var body: some Scene {
-    WindowGroup {
-      ContentView()
-    }
-  }
-}
+let package = Package(
+    name: "MailInterface",
+    platforms: [
+      .macOS(.v14),
+    ],
+    products: [
+        .library(
+            name: "MailInterface",
+            targets: ["MailInterface"]
+        ),
+    ],
+    targets: [
+        .target(
+            name: "MailInterface"
+        ),
 
-struct ContentView: View {
-  
-  var body: some View {
-    Color.red
-  }
-}
-
-#Preview {
-  ContentView()
-}
+    ]
+)

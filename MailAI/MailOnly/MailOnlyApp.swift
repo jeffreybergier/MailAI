@@ -17,23 +17,13 @@
 //
 
 import SwiftUI
+import MailInterface
 
 @main
-struct MailAIApp: App {
-  var body: some Scene {
-    WindowGroup {
-      ContentView()
+struct MailOnlyApp: App {
+    var body: some Scene {
+        WindowGroup {
+          ContentView()
+        }
     }
-  }
-}
-
-struct ContentView: View {
-  
-  var body: some View {
-    Color.red
-  }
-}
-
-#Preview {
-  ContentView()
 }
