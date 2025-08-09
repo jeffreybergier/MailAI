@@ -57,31 +57,35 @@ internal struct MailInterfaceView_Try1: View {
         .tag(message)
       }
       .safeAreaInset(edge: .top) {
-        Button("Load Selected") {
-          self.mail.getSelected()
+        VStack {
+          if let error = self.mail.error {
+            Text(String(describing: error))
+          }
+          if self.mail.isUpdating {
+            ProgressView()
+          } else {
+            Button("Load Selected") {
+              self.mail.getSelected()
+            }
+          }
         }
       }
     } detail: {
       if let selection {
         ScrollView {
           Form {
-            Section("Mail ID") {
-              Button {
-                NSWorkspace.shared.open(selection.url)
-              } label: {
-                Text(selection.id)
-                  .lineLimit(1)
-              }
-              .buttonStyle(.link)
-            }
-            Section("Mail") {
+            Button {
+              NSWorkspace.shared.open(selection.url)
+            } label: {
               Text(selection.subject)
                 .font(.headline)
-              Text(selection.content)
+                .lineLimit(1)
             }
-            Section("Headers") {
-              Text(selection.headers)
-            }
+            .buttonStyle(.link)
+            Divider()
+            Text(selection.content)
+            Divider()
+            Text(selection.headers)
           }
           .padding()
           .font(.body)

@@ -21,6 +21,7 @@ import Foundation
 public enum AppleScriptError: Error {
   case parsing
   case execution
+  case empty
 }
 
 public struct MessageForAnalysis: Identifiable, Hashable, Codable, Sendable {

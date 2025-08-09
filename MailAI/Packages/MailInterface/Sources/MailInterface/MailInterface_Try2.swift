@@ -30,7 +30,11 @@ internal struct MailInterfaceView_Try2: View {
   internal var body: some View {
     NavigationStack {
       VStack(spacing: 0) {
-        ProgressView(self.mail.progress)
+        if let error = self.mail.error {
+          Text(String(describing: error))
+        } else {
+          ProgressView(self.mail.progress)
+        }
         HStack {
           List(self.mail.selection, selection: self.$selection) { message in
             VStack(alignment: .leading) {

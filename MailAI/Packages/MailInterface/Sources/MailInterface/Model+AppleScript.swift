@@ -23,6 +23,7 @@ extension MessageForAnalysis {
   internal static func messages(fromArray descriptor: NSAppleEventDescriptor) throws(AppleScriptError) -> [MessageForAnalysis] {
     var output = [MessageForAnalysis]()
     let count = descriptor.numberOfItems
+    guard count > 0 else { throw .empty }
     for idx in 1...count {
       guard let record = descriptor.atIndex(idx) else { throw .parsing }
       let message = try MessageForAnalysis(fromDictionary: record)
@@ -52,6 +53,7 @@ extension MessageForLoading {
   internal static func messages(fromArray descriptor: NSAppleEventDescriptor) throws(AppleScriptError) -> [MessageForLoading] {
     var output = [MessageForLoading]()
     let count = descriptor.numberOfItems
+    guard count > 0 else { throw .empty }
     for idx in 1...count {
       guard let record = descriptor.atIndex(idx) else { throw .parsing }
       let message = try MessageForLoading(fromDictionary: record)
