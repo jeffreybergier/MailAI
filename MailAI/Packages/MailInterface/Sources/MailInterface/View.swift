@@ -40,35 +40,40 @@ internal struct MailInterfaceView: View {
   internal init() { }
   
   internal var body: some View {
-    HStack {
-      List(self.mail.selection, selection: self.$selection) { message in
-        VStack(alignment: .leading) {
-          Text(message.id)
-            .font(.headline)
-          Text(message.account + " • " + message.mailbox)
-            .font(.subheadline)
-        }
-        .lineLimit(1)
-        .tag(message.id)
-      }
-      .safeAreaInset(edge: .top) {
-        Button("Find Selected") {
-          self.mail.getSelected()
-        }
-      }
-      List(self.mail.messages, selection:self.$selection) { message in
-        VStack(alignment: .leading) {
-          Text(message.subject)
-            .font(.headline)
-          Text(message.account + " • " + message.mailbox)
-            .font(.subheadline)
-        }
-        .lineLimit(1)
-        .tag(message.id)
-      }
-      .safeAreaInset(edge: .top) {
-        Button("Load Messages") {
-          // TODO: Load Messages
+    NavigationStack {
+      VStack(spacing: 0) {
+        ProgressView(self.mail.progress)
+        HStack {
+          List(self.mail.selection, selection: self.$selection) { message in
+            VStack(alignment: .leading) {
+              Text(message.id)
+                .font(.headline)
+              Text(message.account + " • " + message.mailbox)
+                .font(.subheadline)
+            }
+            .lineLimit(1)
+            .tag(message.id)
+          }
+          .safeAreaInset(edge: .top) {
+            Button("Find Selected") {
+              self.mail.getSelected()
+            }
+          }
+          List(self.mail.messages, selection:self.$selection) { message in
+            VStack(alignment: .leading) {
+              Text(message.subject)
+                .font(.headline)
+              Text(message.account + " • " + message.mailbox)
+                .font(.subheadline)
+            }
+            .lineLimit(1)
+            .tag(message.id)
+          }
+          .safeAreaInset(edge: .top) {
+            Button("Load Messages") {
+              self.mail.loadSelected()
+            }
+          }
         }
       }
     }

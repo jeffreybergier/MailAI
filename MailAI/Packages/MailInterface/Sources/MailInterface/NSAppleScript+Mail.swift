@@ -33,10 +33,9 @@ extension NSAppleScript {
         set selectedMessages to selection
         repeat with msg in selectedMessages
           set theUniqueID to message id of msg
-          set theDeviceID to id of msg
           set theMailbox to name of mailbox of msg
           set theAccount to name of account of mailbox of msg
-          set end of output to {kUniqueID:theUniqueID, kDeviceID:theDeviceID, kMailbox:theMailbox, kAccount:theAccount}
+          set end of output to {kUniqueID:theUniqueID, kMailbox:theMailbox, kAccount:theAccount}
         end repeat
       end tell
       log output
@@ -59,13 +58,12 @@ extension NSAppleScript {
         set selectedMessages to selection
         repeat with msg in selectedMessages
           set theUniqueID to message id of msg
-          set theDeviceID to id of msg
           set theMailbox to name of mailbox of msg
           set theAccount to name of account of mailbox of msg
           set theSubject to subject of msg
           set theContent to content of msg
           set theHeaders to all headers of msg
-          set end of output to {kUniqueID:theUniqueID, kDeviceID:theDeviceID, kMailbox:theMailbox, kAccount:theAccount, kSubject:theSubject, kContent:theContent, kHeaders:theHeaders}
+          set end of output to {kUniqueID:theUniqueID, kMailbox:theMailbox, kAccount:theAccount, kSubject:theSubject, kContent:theContent, kHeaders:theHeaders}
         end repeat
       end tell
       log output
@@ -78,6 +76,31 @@ extension NSAppleScript {
       throw .execution
     }
     return try MessageForAnalysis.messages(fromArray: descriptor)
+  }
+  
+  internal static func messageForAnalysis(with messageForLoading: MessageForLoading) throws(AppleScriptError) -> MessageForAnalysis {
+    let mailbox = messageForLoading.mailbox
+    let account = messageForLoading.account
+    let messageID = messageForLoading.id
+    let kScriptString = """
+    tell application "Mail"
+        set msg to first message of mailbox "\(mailbox)" of account "\(account)" whose message id is "\(messageID)"
+        set theUniqueID to message id of msg
+        set theMailbox to name of mailbox of msg
+        set theAccount to name of account of mailbox of msg
+        set theSubject to subject of msg
+        set theContent to content of msg
+        set theHeaders to all headers of msg
+        return {kUniqueID:theUniqueID, kMailbox:theMailbox, kAccount:theAccount, kSubject:theSubject, kContent:theContent, kHeaders:theHeaders}
+    end tell
+    """
+    var error: NSDictionary?
+    let descriptor = NSAppleScript(source: kScriptString)!.executeAndReturnError(&error)
+    if let error = error {
+      NSLog(String(describing: error))
+      throw .execution
+    }
+    return try MessageForAnalysis(fromDictionary: descriptor)
   }
 }
 
@@ -96,8 +119,6 @@ extension MessageForAnalysis {
     let dictionary = try descriptor.dictionaryValue()
     guard let uniqueID = dictionary["kUniqueID"] else { throw .parsing }
     self.id = uniqueID
-    guard let deviceID = dictionary["kDeviceID"] else { throw .parsing }
-    self.deviceID = deviceID
     guard let mailbox  = dictionary["kMailbox"]  else { throw .parsing }
     self.mailbox = mailbox
     guard let account  = dictionary["kAccount"]  else { throw .parsing }
@@ -128,8 +149,6 @@ extension MessageForLoading {
     let dictionary = try descriptor.dictionaryValue()
     guard let uniqueID = dictionary["kUniqueID"] else { throw .parsing }
     self.id = uniqueID
-    guard let deviceID = dictionary["kDeviceID"] else { throw .parsing }
-    self.deviceID = deviceID
     guard let mailbox  = dictionary["kMailbox"]  else { throw .parsing }
     self.mailbox = mailbox
     guard let account  = dictionary["kAccount"]  else { throw .parsing }

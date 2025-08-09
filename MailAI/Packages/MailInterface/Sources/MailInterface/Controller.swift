@@ -46,7 +46,12 @@ public class MailInterface {
 @Observable
 public class MailInterface2 {
   
-  public var isUpdating: Bool = false
+  public let progress: Progress = {
+    let progress = Progress(totalUnitCount: 1)
+    progress.completedUnitCount = 1
+    return progress
+  }()
+  public var isUpdating: Bool { self.progress.completedUnitCount != self.progress.totalUnitCount }
   public var selection: [MessageForLoading] = []
   public var messages: [MessageForAnalysis] = []
   public var error: AppleScriptError?
@@ -54,15 +59,37 @@ public class MailInterface2 {
   public init() { }
   
   public func getSelected() {
+    self.progress.totalUnitCount = 1
+    self.progress.completedUnitCount = 0
     Task {
       do {
-        self.isUpdating = true
         self.selection = try NSAppleScript.selectedMessagesForLoading()
       } catch let error as AppleScriptError {
         NSLog(error.localizedDescription)
         self.error = error
       }
-      self.isUpdating = false
+      self.progress.completedUnitCount = 1
+    }
+  }
+  
+  public func loadSelected() {
+    self.progress.totalUnitCount = Int64(self.selection.count)
+    self.progress.completedUnitCount = 0
+    Task {
+      for forLoading in self.selection {
+        let task = Task.detached(priority: .userInitiated) {
+          try NSAppleScript.messageForAnalysis(with: forLoading)
+        }
+        do {
+          let message = try await task.value
+          self.messages.append(message)
+          self.progress.completedUnitCount += 1
+        } catch let error as AppleScriptError {
+          NSLog(error.localizedDescription)
+          self.error = error
+          self.progress.completedUnitCount = self.progress.totalUnitCount
+        }
+      }
     }
   }
 }
