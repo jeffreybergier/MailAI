@@ -46,11 +46,7 @@ public class MailInterface {
 @Observable
 public class MailInterface2 {
   
-  public let progress: Progress = {
-    let progress = Progress(totalUnitCount: 1)
-    progress.completedUnitCount = 1
-    return progress
-  }()
+  public let progress = Progress()
   public var isUpdating: Bool { self.progress.completedUnitCount != self.progress.totalUnitCount }
   public var selection: [MessageForLoading] = []
   public var messages: [MessageForAnalysis] = []
@@ -76,20 +72,28 @@ public class MailInterface2 {
     self.progress.totalUnitCount = Int64(self.selection.count)
     self.progress.completedUnitCount = 0
     Task {
-      for forLoading in self.selection {
+      for forLoading in self.selection.chunked(into: 10) {
         let task = Task.detached(priority: .userInitiated) {
           try NSAppleScript.messageForAnalysis(with: forLoading)
         }
         do {
-          let message = try await task.value
-          self.messages.append(message)
-          self.progress.completedUnitCount += 1
+          let messages = try await task.value
+          self.messages += messages
+          self.progress.completedUnitCount += Int64(messages.count)
         } catch let error as AppleScriptError {
           NSLog(error.localizedDescription)
           self.error = error
           self.progress.completedUnitCount = self.progress.totalUnitCount
         }
       }
+    }
+  }
+}
+
+extension Array {
+  func chunked(into size: Int) -> [[Element]] {
+    stride(from: 0, to: count, by: size).map {
+      Array(self[$0..<Swift.min($0 + size, count)])
     }
   }
 }

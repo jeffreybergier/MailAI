@@ -38,7 +38,6 @@ extension NSAppleScript {
           set end of output to {kUniqueID:theUniqueID, kMailbox:theMailbox, kAccount:theAccount}
         end repeat
       end tell
-      log output
       return output
       """
     var error: NSDictionary?
@@ -66,9 +65,42 @@ extension NSAppleScript {
           set end of output to {kUniqueID:theUniqueID, kMailbox:theMailbox, kAccount:theAccount, kSubject:theSubject, kContent:theContent, kHeaders:theHeaders}
         end repeat
       end tell
-      log output
       return output
       """
+    var error: NSDictionary?
+    let descriptor = NSAppleScript(source: kScriptString)!.executeAndReturnError(&error)
+    if let error = error {
+      NSLog(String(describing: error))
+      throw .execution
+    }
+    return try MessageForAnalysis.messages(fromArray: descriptor)
+  }
+  
+  internal static func messageForAnalysis(with messagesForLoading: [MessageForLoading]) throws(AppleScriptError) -> [MessageForAnalysis] {
+    let input: String = messagesForLoading
+                       .map { "{ kUniqueID:\"\($0.id)\", kMailbox:\"\($0.mailbox)\", kAccount:\"\($0.account)\" }" }
+                       .joined(separator: ",")
+    let kScriptString = """
+    set output to {}
+    set input to {\(input)}
+    tell application "Mail"
+      repeat with dict in input
+        set inUniqueID to kUniqueID of dict
+        set inMailbox to kMailbox of dict
+        set inAccount to kAccount of dict
+        set msg to (first message of mailbox inMailbox of account inAccount whose message id is inUniqueID)
+        set theUniqueID to message id of msg
+        set theMailbox to name of mailbox of msg
+        set theAccount to name of account of mailbox of msg
+        set theSubject to subject of msg
+        set theContent to content of msg
+        set theHeaders to all headers of msg
+        set end of output to {kUniqueID:theUniqueID, kMailbox:theMailbox, kAccount:theAccount, kSubject:theSubject, kContent:theContent, kHeaders:theHeaders}
+      end repeat
+    end tell
+    log output
+    return output
+    """
     var error: NSDictionary?
     let descriptor = NSAppleScript(source: kScriptString)!.executeAndReturnError(&error)
     if let error = error {
