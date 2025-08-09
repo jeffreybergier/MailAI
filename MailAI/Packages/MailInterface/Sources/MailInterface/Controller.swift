@@ -18,99 +18,26 @@
 
 import Foundation
 
-public struct MailInterface: Sendable {
+@MainActor
+@Observable
+public class MailInterface {
   
+  public var isUpdating: Bool = false
   public var messages: [MessageForAnalysis] = []
-  public var error: MailInterfaceError?
+  public var error: AppleScriptError?
   
   public init() { }
   
-  public mutating func getSelected() {
-    let kScriptString =
-    """
-    set output to {}
-    tell application "Mail"
-      set selectedMessages to selection
-      repeat with msg in selectedMessages
-        set theUniqueID to message id of msg
-        set theDeviceID to id of msg
-        set theMailbox to name of mailbox of msg
-        set theAccount to name of account of mailbox of msg
-        set theSubject to subject of msg
-        set theContent to content of msg
-        set theHeaders to all headers of msg
-        set end of output to {kUniqueID:theUniqueID, kDeviceID:theDeviceID, kMailbox:theMailbox, kAccount:theAccount, kSubject:theSubject, kContent:theContent, kHeaders:theHeaders}
-      end repeat
-    end tell
-    log output
-    return output
-    """
-    var error: NSDictionary?
-    let descriptor = NSAppleScript(source: kScriptString)!.executeAndReturnError(&error)
-    if let error { assertionFailure(String(describing: error)) }
-    do {
-      let messages = try MessageForAnalysis.messages(fromArray: descriptor)
-      NSLog("MailInterface: [Success] \(messages.count)")
-      self.messages = messages
-      self.error = nil
-    } catch {
-      self.error = error
-      NSLog("MailInterface: [Error] \(error)")
+  public func getSelected() {
+    Task {
+      do {
+        self.isUpdating = true
+        self.messages = try NSAppleScript.selectedMessagesForAnalysis()
+      } catch let error as AppleScriptError {
+        NSLog(error.localizedDescription)
+        self.error = error
+      }
+      self.isUpdating = false
     }
-  }
-}
-
-public enum MailInterfaceError: Error {
-  case parsing
-  case execution
-}
-
-extension MessageForAnalysis {
-  internal static func messages(fromArray descriptor: NSAppleEventDescriptor) throws(MailInterfaceError) -> [MessageForAnalysis] {
-    // TODO: Using Map here does not work because of typed throws
-    // return try input.split(separator: "RrRrRr").map { try Message(fromAppleEventRow: $0) }
-    var output = [MessageForAnalysis]()
-    let count = descriptor.numberOfItems
-    for idx in 1...count {
-      guard let record = descriptor.atIndex(idx) else { throw .parsing }
-      let message = try MessageForAnalysis(fromDictionary: record)
-      output.append(message)
-    }
-    return output
-  }
-  internal init(fromDictionary descriptor: NSAppleEventDescriptor) throws(MailInterfaceError) {
-    let dictionary = try descriptor.dictionaryValue()
-    guard let uniqueID = dictionary["kUniqueID"] else { throw .parsing }
-    self.id = uniqueID
-    guard let deviceID = dictionary["kDeviceID"] else { throw .parsing }
-    self.deviceID = deviceID
-    guard let mailbox  = dictionary["kMailbox"]  else { throw .parsing }
-    self.mailbox = mailbox
-    guard let account  = dictionary["kAccount"]  else { throw .parsing }
-    self.account = account
-    guard let subject  = dictionary["kSubject"]  else { throw .parsing }
-    self.subject = subject
-    guard let content  = dictionary["kContent"]  else { throw .parsing }
-    self.content = content
-    guard let headers  = dictionary["kHeaders"]  else { throw .parsing }
-    self.headers = headers
-  }
-}
-
-// Credit: https://stackoverflow.com/a/13182999
-extension NSAppleEventDescriptor {
-  internal func dictionaryValue() throws(MailInterfaceError) -> [String: String] {
-    var output = [String: String]()
-    let this = self.atIndex(1)!
-    let count = this.numberOfItems
-    var idx = 1
-    while idx <= count {
-      guard let key = this.atIndex(idx)?.stringValue else { throw .parsing }
-      idx += 1
-      guard let val = this.atIndex(idx)?.stringValue else { throw .parsing }
-      idx += 1
-      output[key] = val
-    }
-    return output
   }
 }
