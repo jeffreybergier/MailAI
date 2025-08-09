@@ -18,71 +18,26 @@
 
 import SwiftUI
 
-public struct ContentView: View {
+// MARK: View
+
+public struct MailOnlyAppContentView: View {
   
   public init() {}
   
   public var body: some View {
     TabView {
-      DumbMailInterfaceView()
+      MailInterfaceView_Try1()
         .tabItem { Text("MessagesForAnalysis") }
-      MailInterfaceView()
+      MailInterfaceView_Try2()
         .tabItem { Text("MessagesForLoading") }
     }
   }
 }
 
-internal struct MailInterfaceView: View {
-  
-  @State private var mail = MailInterface2()
-  @State private var selection: String?
-  
-  internal init() { }
-  
-  internal var body: some View {
-    NavigationStack {
-      VStack(spacing: 0) {
-        ProgressView(self.mail.progress)
-        HStack {
-          List(self.mail.selection, selection: self.$selection) { message in
-            VStack(alignment: .leading) {
-              Text(message.id)
-                .font(.headline)
-              Text(message.account + " • " + message.mailbox)
-                .font(.subheadline)
-            }
-            .lineLimit(1)
-            .tag(message.id)
-          }
-          .safeAreaInset(edge: .top) {
-            Button("Find Selected") {
-              self.mail.getSelected()
-            }
-          }
-          List(self.mail.messages, selection:self.$selection) { message in
-            VStack(alignment: .leading) {
-              Text(message.subject)
-                .font(.headline)
-              Text(message.account + " • " + message.mailbox)
-                .font(.subheadline)
-            }
-            .lineLimit(1)
-            .tag(message.id)
-          }
-          .safeAreaInset(edge: .top) {
-            Button("Load Messages") {
-              self.mail.loadSelected()
-            }
-          }
-        }
-      }
-    }
-  }
-}
 
-internal struct DumbMailInterfaceView: View {
+internal struct MailInterfaceView_Try1: View {
   
-  @State private var mail = MailInterface()
+  @State private var mail = MailInterface_Try1()
   @State private var selection: MessageForAnalysis?
   
   internal init() {}
@@ -99,6 +54,7 @@ internal struct DumbMailInterfaceView: View {
             .font(.subheadline)
         }
         .lineLimit(1)
+        .tag(message)
       }
       .safeAreaInset(edge: .top) {
         Button("Load Selected") {
@@ -132,5 +88,65 @@ internal struct DumbMailInterfaceView: View {
         }
       }
     }
+  }
+}
+
+// MARK: Controller
+
+@MainActor
+@Observable
+public class MailInterface_Try1 {
+  
+  public var isUpdating: Bool = false
+  public var messages: [MessageForAnalysis] = []
+  public var error: AppleScriptError?
+  
+  public init() { }
+  
+  public func getSelected() {
+    self.isUpdating = true
+    Task {
+      let task = Task.detached(priority: .userInitiated) {
+        try NSAppleScript.try1_getSelectedMessagesForAnalysis()
+      }
+      do {
+        let messages = try await task.value
+        self.messages += messages
+        self.isUpdating = false
+      } catch let error as AppleScriptError {
+        NSLog(error.localizedDescription)
+        self.error = error
+        self.isUpdating = false
+      }
+    }
+  }
+}
+
+extension NSAppleScript {
+  internal static func try1_getSelectedMessagesForAnalysis() throws(AppleScriptError) -> [MessageForAnalysis] {
+    let kScriptString =
+      """
+      set output to {}
+      tell application "Mail"
+        set selectedMessages to selection
+        repeat with msg in selectedMessages
+          set theUniqueID to message id of msg
+          set theMailbox to name of mailbox of msg
+          set theAccount to name of account of mailbox of msg
+          set theSubject to subject of msg
+          set theContent to content of msg
+          set theHeaders to all headers of msg
+          set end of output to {kUniqueID:theUniqueID, kMailbox:theMailbox, kAccount:theAccount, kSubject:theSubject, kContent:theContent, kHeaders:theHeaders}
+        end repeat
+      end tell
+      return output
+      """
+    var error: NSDictionary?
+    let descriptor = NSAppleScript(source: kScriptString)!.executeAndReturnError(&error)
+    if let error = error {
+      NSLog(String(describing: error))
+      throw .execution
+    }
+    return try MessageForAnalysis.messages(fromArray: descriptor)
   }
 }

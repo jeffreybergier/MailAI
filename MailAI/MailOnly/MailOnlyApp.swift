@@ -23,7 +23,7 @@ import MailInterface
 struct MailOnlyApp: App {
     var body: some Scene {
         WindowGroup {
-          ContentView()
+          MailOnlyAppContentView()
         }
     }
 }

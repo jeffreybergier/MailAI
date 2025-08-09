@@ -18,6 +18,11 @@
 
 import Foundation
 
+public enum AppleScriptError: Error {
+  case parsing
+  case execution
+}
+
 public struct MessageForAnalysis: Identifiable, Hashable, Codable, Sendable {
   
   public var id: String
