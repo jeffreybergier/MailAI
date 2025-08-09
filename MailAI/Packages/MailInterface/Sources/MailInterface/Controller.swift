@@ -41,3 +41,28 @@ public class MailInterface {
     }
   }
 }
+
+@MainActor
+@Observable
+public class MailInterface2 {
+  
+  public var isUpdating: Bool = false
+  public var selection: [MessageForLoading] = []
+  public var messages: [MessageForAnalysis] = []
+  public var error: AppleScriptError?
+  
+  public init() { }
+  
+  public func getSelected() {
+    Task {
+      do {
+        self.isUpdating = true
+        self.selection = try NSAppleScript.selectedMessagesForLoading()
+      } catch let error as AppleScriptError {
+        NSLog(error.localizedDescription)
+        self.error = error
+      }
+      self.isUpdating = false
+    }
+  }
+}

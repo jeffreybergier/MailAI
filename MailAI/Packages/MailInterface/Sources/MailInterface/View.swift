@@ -20,21 +20,85 @@ import SwiftUI
 
 public struct ContentView: View {
   
-  @State private var mail = MailInterface()
-  @State private var selection: MessageForAnalysis?
-  
   public init() {}
   
   public var body: some View {
+    TabView {
+      DumbMailInterfaceView()
+        .tabItem { Text("MessagesForAnalysis") }
+      MailInterfaceView()
+        .tabItem { Text("MessagesForLoading") }
+    }
+  }
+}
+
+internal struct MailInterfaceView: View {
+  
+  @State private var mail = MailInterface2()
+  @State private var selection: String?
+  
+  internal init() { }
+  
+  internal var body: some View {
+    HStack {
+      List(self.mail.selection, selection: self.$selection) { message in
+        VStack(alignment: .leading) {
+          Text(message.id)
+            .font(.headline)
+          Text(message.account + " • " + message.mailbox)
+            .font(.subheadline)
+        }
+        .lineLimit(1)
+        .tag(message.id)
+      }
+      .safeAreaInset(edge: .top) {
+        Button("Find Selected") {
+          self.mail.getSelected()
+        }
+      }
+      List(self.mail.messages, selection:self.$selection) { message in
+        VStack(alignment: .leading) {
+          Text(message.subject)
+            .font(.headline)
+          Text(message.account + " • " + message.mailbox)
+            .font(.subheadline)
+        }
+        .lineLimit(1)
+        .tag(message.id)
+      }
+      .safeAreaInset(edge: .top) {
+        Button("Load Messages") {
+          // TODO: Load Messages
+        }
+      }
+    }
+  }
+}
+
+internal struct DumbMailInterfaceView: View {
+  
+  @State private var mail = MailInterface()
+  @State private var selection: MessageForAnalysis?
+  
+  internal init() {}
+  
+  internal var body: some View {
     NavigationSplitView {
       List(self.mail.messages,
            selection:self.$selection)
       { message in
-        HStack {
+        VStack(alignment: .leading) {
           Text(message.subject)
-            .lineLimit(1)
+            .font(.headline)
+          Text(message.account + " • " + message.mailbox)
+            .font(.subheadline)
         }
-        .tag(message)
+        .lineLimit(1)
+      }
+      .safeAreaInset(edge: .top) {
+        Button("Load Selected") {
+          self.mail.getSelected()
+        }
       }
     } detail: {
       if let selection {
@@ -60,13 +124,6 @@ public struct ContentView: View {
           }
           .padding()
           .font(.body)
-        }
-      }
-    }
-    .toolbar {
-      ToolbarItem {
-        Button("Refresh") {
-          self.mail.getSelected()
         }
       }
     }

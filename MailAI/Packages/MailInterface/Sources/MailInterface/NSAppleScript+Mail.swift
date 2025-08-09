@@ -24,6 +24,33 @@ public enum AppleScriptError: Error {
 }
 
 extension NSAppleScript {
+  
+  internal static func selectedMessagesForLoading() throws(AppleScriptError) -> [MessageForLoading] {
+    let kScriptString =
+      """
+      set output to {}
+      tell application "Mail"
+        set selectedMessages to selection
+        repeat with msg in selectedMessages
+          set theUniqueID to message id of msg
+          set theDeviceID to id of msg
+          set theMailbox to name of mailbox of msg
+          set theAccount to name of account of mailbox of msg
+          set end of output to {kUniqueID:theUniqueID, kDeviceID:theDeviceID, kMailbox:theMailbox, kAccount:theAccount}
+        end repeat
+      end tell
+      log output
+      return output
+      """
+    var error: NSDictionary?
+    let descriptor = NSAppleScript(source: kScriptString)!.executeAndReturnError(&error)
+    if let error = error {
+      NSLog(String(describing: error))
+      throw .execution
+    }
+    return try MessageForLoading.messages(fromArray: descriptor)
+  }
+  
   internal static func selectedMessagesForAnalysis() throws(AppleScriptError) -> [MessageForAnalysis] {
     let kScriptString =
       """
@@ -46,15 +73,16 @@ extension NSAppleScript {
       """
     var error: NSDictionary?
     let descriptor = NSAppleScript(source: kScriptString)!.executeAndReturnError(&error)
-    if let _ = error { throw .execution }
+    if let error = error {
+      NSLog(String(describing: error))
+      throw .execution
+    }
     return try MessageForAnalysis.messages(fromArray: descriptor)
   }
 }
 
 extension MessageForAnalysis {
   internal static func messages(fromArray descriptor: NSAppleEventDescriptor) throws(AppleScriptError) -> [MessageForAnalysis] {
-    // TODO: Using Map here does not work because of typed throws
-    // return try input.split(separator: "RrRrRr").map { try Message(fromAppleEventRow: $0) }
     var output = [MessageForAnalysis]()
     let count = descriptor.numberOfItems
     for idx in 1...count {
@@ -80,6 +108,32 @@ extension MessageForAnalysis {
     self.content = content
     guard let headers  = dictionary["kHeaders"]  else { throw .parsing }
     self.headers = headers
+  }
+}
+
+extension MessageForLoading {
+  internal static func messages(fromArray descriptor: NSAppleEventDescriptor) throws(AppleScriptError) -> [MessageForLoading] {
+    // TODO: Using Map here does not work because of typed throws
+    // return try input.split(separator: "RrRrRr").map { try Message(fromAppleEventRow: $0) }
+    var output = [MessageForLoading]()
+    let count = descriptor.numberOfItems
+    for idx in 1...count {
+      guard let record = descriptor.atIndex(idx) else { throw .parsing }
+      let message = try MessageForLoading(fromDictionary: record)
+      output.append(message)
+    }
+    return output
+  }
+  internal init(fromDictionary descriptor: NSAppleEventDescriptor) throws(AppleScriptError) {
+    let dictionary = try descriptor.dictionaryValue()
+    guard let uniqueID = dictionary["kUniqueID"] else { throw .parsing }
+    self.id = uniqueID
+    guard let deviceID = dictionary["kDeviceID"] else { throw .parsing }
+    self.deviceID = deviceID
+    guard let mailbox  = dictionary["kMailbox"]  else { throw .parsing }
+    self.mailbox = mailbox
+    guard let account  = dictionary["kAccount"]  else { throw .parsing }
+    self.account = account
   }
 }
 

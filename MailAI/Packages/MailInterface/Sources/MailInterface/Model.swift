@@ -35,6 +35,13 @@ public struct MessageForAnalysis: Identifiable, Hashable, Codable, Sendable {
   }
 }
 
+public struct MessageForLoading: Identifiable, Hashable, Codable, Sendable {
+  public var id: String // uniqueID in AppleScript
+  public var deviceID: String
+  public var mailbox: String
+  public var account: String
+}
+
 import SwiftData
 
 @Model
