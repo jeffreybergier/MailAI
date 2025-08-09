@@ -42,7 +42,7 @@ public struct ContentView: View {
           Form {
             Section("Mail ID") {
               Button {
-                NSWorkspace.shared.open(URL(string: "message:\(selection.id)")!)
+                NSWorkspace.shared.open(selection.url)
               } label: {
                 Text(selection.id)
                   .lineLimit(1)
