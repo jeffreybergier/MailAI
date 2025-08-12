@@ -27,9 +27,11 @@ public struct MailOnlyAppContentView: View {
   public var body: some View {
     TabView {
       MailInterfaceView_Try1()
-        .tabItem { Text("MessagesForAnalysis") }
+        .tabItem { Text("Try1") }
       MailInterfaceView_Try2()
-        .tabItem { Text("MessagesForLoading") }
+        .tabItem { Text("Try2") }
+      MailInterfaceView_Try3()
+        .tabItem { Text("Try3") }
     }
   }
 }
