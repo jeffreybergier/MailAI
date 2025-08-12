@@ -22,16 +22,21 @@ import SwiftUI
 
 public struct MailOnlyAppContentView: View {
   
+  @SceneStorage("SelectedTab") private var selection = 3
+  
   public init() {}
   
   public var body: some View {
-    TabView {
+    TabView(selection: self.$selection) {
       MailInterfaceView_Try1()
         .tabItem { Text("Try1") }
+        .tag(1)
       MailInterfaceView_Try2()
         .tabItem { Text("Try2") }
+        .tag(2)
       MailInterfaceView_Try3()
         .tabItem { Text("Try3") }
+        .tag(3)
     }
   }
 }
