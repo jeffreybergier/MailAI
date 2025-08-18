@@ -20,14 +20,14 @@ import SwiftUI
 
 // MARK: View
 
-internal struct MailInterfaceView_Try3: View {
+public struct MailInterfaceView: View {
   
-  @State private var mail = MailInterface_Try3()
+  @State private var mail = MailInterface()
   @State private var selection: MessageForAnalysis?
   
-  internal init() { }
+  public init() { }
   
-  internal var body: some View {
+  public var body: some View {
     NavigationSplitView {
       List(self.mail.messages, selection:self.$selection) { message in
         VStack(alignment: .leading) {
@@ -98,7 +98,7 @@ internal struct MailInterfaceView_Try3: View {
 
 @MainActor
 @Observable
-public class MailInterface_Try3 {
+public class MailInterface {
   
   public enum Status: Sendable {
     case notStarted

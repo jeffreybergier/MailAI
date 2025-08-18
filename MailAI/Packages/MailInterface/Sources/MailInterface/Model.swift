@@ -40,25 +40,8 @@ public struct MessageForAnalysis: Identifiable, Hashable, Codable, Sendable {
   }
 }
 
-public struct MessageForLoading: Identifiable, Hashable, Codable, Sendable {
-  public var id: String
-  public var mailbox: String
-  public var account: String
-}
-
-import SwiftData
-
-@Model
-public final class MessageForStorage {
-  @Attribute(.unique)
-  public var id: String
-  public var mailbox: String
-  public var account: String
-  public var subject: String
-  public init(id: String, deviceID: String, mailbox: String, account: String, subject: String) {
-    self.id = id
-    self.mailbox = mailbox
-    self.account = account
-    self.subject = subject
-  }
+internal struct MessageForLoading: Identifiable, Hashable, Codable, Sendable {
+  internal var id: String
+  internal var mailbox: String
+  internal var account: String
 }
