@@ -181,9 +181,9 @@ internal class CounterFilePresenter: NSObject, NSFilePresenter {
     let file = folder.appending(path: UUID().uuidString + ".txt", directoryHint: .notDirectory)
     try! fm.createDirectory(at: folder, withIntermediateDirectories: true)
     fm.createFile(atPath: file.path, contents: nil)
-    #if DEBUG
-    NSWorkspace.shared.selectFile(file.path, inFileViewerRootedAtPath: folder.path)
-    #endif
+    // #if DEBUG
+    // NSWorkspace.shared.selectFile(file.path, inFileViewerRootedAtPath: folder.path)
+    // #endif
     return file
   }()
   
