@@ -52,7 +52,9 @@ public class MailInterface {
   }
   
   public func step2_import() {
-    guard case .counted(let count) = self.status else { fatalError("Function used in wrong order") }
+    guard case .counted(let count) = self.status else {
+      fatalError("Function used in wrong order")
+    }
     self.prepareFilePresenter()
     self.status = .importing(complete: 0, total: Double(count))
     let scratchFile = self.counterFilePresenter!.presentedItemURL!

@@ -42,3 +42,32 @@ Unknown is for when the email seems to fit no other category.
   @Guide(description: "The reason you think this email fits into the category")
   public var explanation: String
 }
+
+public struct MessagePrompt {
+  public var id: String
+  public var usersNames: String
+  public var usersEmails: String
+  public var usersDescription: String
+  public var subject: String
+  public var content: String
+  public var headers: String
+  
+  public init(id: String,
+              usersNames: String       = MessagePrompt.defaultNoneProvided,
+              usersEmails: String      = MessagePrompt.defaultNoneProvided,
+              usersDescription: String = MessagePrompt.defaultNoneProvided,
+              subject: String,
+              content: String,
+              headers: String)
+  {
+    self.id = id
+    self.usersNames = usersNames
+    self.usersEmails = usersEmails
+    self.usersDescription = usersDescription
+    self.subject = subject
+    self.content = content
+    self.headers = headers
+  }
+  
+  public static let defaultNoneProvided = "None Provided"
+}

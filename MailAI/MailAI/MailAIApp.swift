@@ -28,12 +28,7 @@ struct MailAIApp: App {
 }
 
 struct ContentView: View {
-  
   var body: some View {
     Color.red
   }
-}
-
-#Preview {
-  ContentView()
 }
