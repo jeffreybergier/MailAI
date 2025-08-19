@@ -8,12 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		8C1DD7382E46C23700A1674B /* MailInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 8C1DD7372E46C23700A1674B /* MailInterface */; };
-		8C41AEC82E5375EB00ABFF38 /* AIInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 8C41AEC72E5375EB00ABFF38 /* AIInterface */; };
+		8C46ADED2E54B80A0043D682 /* AppInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 8C46ADEC2E54B80A0043D682 /* AppInterface */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		8C1DD7122E46BFFB00A1674B /* MailInterface */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = MailInterface; path = Packages/MailInterface; sourceTree = "<group>"; };
 		8C1DD7212E46C10A00A1674B /* MailOnly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MailOnly.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8C46ADEB2E54B65B0043D682 /* AppInterface */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = AppInterface; path = Packages/AppInterface; sourceTree = "<group>"; };
 		8C9917B72E438731009AD341 /* MailAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MailAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8CB702C72E5369FF00F76535 /* AIInterface */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = AIInterface; path = Packages/AIInterface; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -44,7 +45,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8C41AEC82E5375EB00ABFF38 /* AIInterface in Frameworks */,
+				8C46ADED2E54B80A0043D682 /* AppInterface in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -63,6 +64,7 @@
 			children = (
 				8C9917B92E438731009AD341 /* MailAI */,
 				8C1DD7222E46C10A00A1674B /* MailOnly */,
+				8C46ADEB2E54B65B0043D682 /* AppInterface */,
 				8CB702C72E5369FF00F76535 /* AIInterface */,
 				8C1DD7122E46BFFB00A1674B /* MailInterface */,
 				8C1DD7362E46C23700A1674B /* Frameworks */,
@@ -122,7 +124,7 @@
 			);
 			name = MailAI;
 			packageProductDependencies = (
-				8C41AEC72E5375EB00ABFF38 /* AIInterface */,
+				8C46ADEC2E54B80A0043D682 /* AppInterface */,
 			);
 			productName = MailAI;
 			productReference = 8C9917B72E438731009AD341 /* MailAI.app */;
@@ -566,9 +568,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = MailInterface;
 		};
-		8C41AEC72E5375EB00ABFF38 /* AIInterface */ = {
+		8C46ADEC2E54B80A0043D682 /* AppInterface */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = AIInterface;
+			productName = AppInterface;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

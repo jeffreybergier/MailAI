@@ -20,21 +20,20 @@
 
 import PackageDescription
 
-let package = Package(
-    name: "AIInterface",
-    platforms: [
-      .macOS(.v26),
-    ],
-    products: [
-        .library(
-            name: "AIInterface",
-            targets: ["AIInterface"]
-        ),
-    ],
-    targets: [
-        .target(
-            name: "AIInterface"
-        ),
+let packageName = "AIInterface"
 
-    ]
+let package = Package(
+  name: packageName,
+  platforms: [
+    .macOS(.v26),
+  ],
+  products: [
+    .library(
+      name: packageName,
+      targets: [packageName]
+    ),
+  ],
+  targets: [
+    .target(name: packageName),
+  ]
 )

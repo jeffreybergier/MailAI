@@ -17,13 +17,33 @@
 //
 
 import SwiftUI
-import AppInterface
 
-@main
-struct MailAIApp: App {
-  var body: some Scene {
-    WindowGroup {
-      AppView()
+public struct AppView: View {
+  public init() {}
+  public var body: some View {
+    HStack {
+      MailImportView()
+      AIAnalyzeView()
+      AnalysisStoreView()
     }
   }
 }
+
+internal struct MailImportView: View {
+  internal var body: some View {
+    Color.yellow
+  }
+}
+
+internal struct AIAnalyzeView: View {
+  internal var body: some View {
+    Color.blue
+  }
+}
+
+internal struct AnalysisStoreView: View {
+  internal var body: some View {
+    Color.green
+  }
+}
+

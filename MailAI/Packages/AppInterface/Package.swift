@@ -1,3 +1,5 @@
+// swift-tools-version: 6.2
+
 //
 // GPLv3 License Notice
 //
@@ -16,14 +18,32 @@
 // along with MailAI. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import SwiftUI
-import AppInterface
+import PackageDescription
 
-@main
-struct MailAIApp: App {
-  var body: some Scene {
-    WindowGroup {
-      AppView()
-    }
-  }
-}
+let packageName = "AppInterface"
+
+let package = Package(
+  name: packageName,
+  platforms: [
+    .macOS(.v26),
+  ],
+  products: [
+    .library(
+      name: packageName,
+      targets: [packageName]
+    ),
+  ],
+  dependencies: [
+    .package(path: "../AIInterface"),
+    .package(path: "../MailInterface"),
+  ],
+  targets: [
+    .target(
+      name: packageName,
+      dependencies: [
+        .byNameItem(name: "AIInterface", condition: nil),
+        .byNameItem(name: "MailInterface", condition: nil),
+      ],
+    ),
+  ]
+)

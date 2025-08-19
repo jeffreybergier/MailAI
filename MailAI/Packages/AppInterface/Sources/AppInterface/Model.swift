@@ -15,15 +15,3 @@
 // You should have received a copy of the GNU General Public License
 // along with MailAI. If not, see <https://www.gnu.org/licenses/>.
 //
-
-import SwiftUI
-import AppInterface
-
-@main
-struct MailAIApp: App {
-  var body: some Scene {
-    WindowGroup {
-      AppView()
-    }
-  }
-}

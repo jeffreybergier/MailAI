@@ -20,21 +20,20 @@
 
 import PackageDescription
 
-let package = Package(
-    name: "MailInterface",
-    platforms: [
-      .macOS(.v14),
-    ],
-    products: [
-        .library(
-            name: "MailInterface",
-            targets: ["MailInterface"]
-        ),
-    ],
-    targets: [
-        .target(
-            name: "MailInterface"
-        ),
+let packageName = "MailInterface"
 
-    ]
+let package = Package(
+  name: packageName,
+  platforms: [
+    .macOS(.v14),
+  ],
+  products: [
+    .library(
+      name: packageName,
+      targets: [packageName]
+    ),
+  ],
+  targets: [
+    .target(name: packageName),
+  ]
 )
