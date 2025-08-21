@@ -34,6 +34,12 @@ let package = Package(
     ),
   ],
   targets: [
-    .target(name: packageName),
+    .target(
+      name: packageName,
+      swiftSettings: [
+        .swiftLanguageMode(.v6),
+        .enableUpcomingFeature("StrictConcurrency")
+      ]
+    ),
   ]
 )

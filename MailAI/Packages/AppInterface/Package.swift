@@ -44,6 +44,10 @@ let package = Package(
         .byNameItem(name: "AIInterface", condition: nil),
         .byNameItem(name: "MailInterface", condition: nil),
       ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6),
+        .enableUpcomingFeature("StrictConcurrency")
+      ],
     ),
   ]
 )
