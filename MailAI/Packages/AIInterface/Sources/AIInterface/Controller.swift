@@ -8,6 +8,8 @@ import FoundationModels
 @Observable
 public class AIInterface {
   
+  public typealias Analyses = [String: PromptAnalysis]
+  
   public enum Status: Sendable {
     case unknown
     case ready
@@ -27,7 +29,7 @@ public class AIInterface {
   
   public var instructions: String
   public var status = Status.unknown
-  public var analyzed = [String: MessageAnalysis]()
+  public var analyzed = Analyses()
   
   public init(instructions: String = AIInterface.defaultInstructions) {
     self.instructions = instructions
@@ -63,7 +65,7 @@ public class AIInterface {
       for (idx, prompt) in prompts.enumerated() {
         do {
           let response = try await model.respond(to: prompt.stringValue,
-                                                 generating: MessageAnalysis.self)
+                                                 generating: PromptAnalysis.self)
           self.analyzed[prompt.id] = response.content
           self.status = .analyzing(complete: Double(idx+1), total: Double(total))
         } catch {

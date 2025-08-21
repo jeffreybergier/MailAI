@@ -19,28 +19,45 @@
 import FoundationModels
 
 @Generable
-public struct MessageAnalysis: Hashable, Codable, Sendable {
-  
-  @Generable(description: """
-The category that best fits the email. 
-Spam is for spam or advertising content that is has not been requested by the user. 
-Newsletters are for advertising or messages that are received on a daily, weekly, or monthly schedule. 
-Adult is for topics like pornography, guns, drugs, or other not safe for work emails. 
-Malicious is for email that contains spams, phishing, identity theft, etc. 
-Calendar is for email that is related to recieving, accepting, or sending calendar invites. 
-CorrespondanceFriends is for conversations between friends. 
-CorrespondanceWork is for conversations between coworkers or other email that looks work related. 
-ActionRequired is for emails that require action from the user such as tax, bank, service provider, insurance, or other items that need quick action.
-Unknown is for when the email seems to fit no other category.
-""")
-  public enum Category: Hashable, Codable, Sendable {
-    case spam, newsletters, adult, malicious, calendar, correspondanceFriends, correspondanceWork, actionRequired, unknown
+public struct PromptAnalysis: Hashable, Codable, Sendable {
+  @Generable
+  public struct TagAnalysis: Hashable, Codable, Sendable {
+    @Generable
+    public enum Tag: Hashable, Codable, Sendable {
+      case spam, newsletters, adult, malicious, calendar, correspondanceFriends, correspondanceWork, actionRequired, old, deletable
+    }
+    public var tag: Tag
+    @Guide(description: "The reason you think this tag is a match for this email message")
+    public var justification: String
   }
-  
-  @Guide(description: "The category that best fits the email you have been provided")
-  public var category: Category
-  @Guide(description: "The reason you think this email fits into the category")
-  public var explanation: String
+  public var tags: [TagAnalysis] = []
+}
+
+extension PromptAnalysis.TagAnalysis.Tag: CustomStringConvertible {
+  public var description: String {
+    switch self {
+    case .spam:
+      return "Spam is for spam or advertising content that is has not been requested by the user."
+    case .newsletters:
+      return "Newsletters are for advertising or messages that are received on a daily, weekly, or monthly schedule."
+    case .adult:
+      return "Adult is for topics like pornography, guns, drugs, or other not safe for work emails."
+    case .malicious:
+      return "Malicious is for email that contains spams, phishing, identity theft, etc."
+    case .calendar:
+      return "Calendar is for email that is related to recieving, accepting, or sending calendar invites."
+    case .correspondanceFriends:
+      return "CorrespondanceFriends is for conversations between friends."
+    case .correspondanceWork:
+      return "CorrespondanceWork is for conversations between coworkers or other email that looks work related."
+    case .actionRequired:
+      return "ActionRequired is for emails that require action from the user such as tax, bank, service provider, insurance, or other items that need quick action."
+    case .old:
+      return "Old is for emails are really old and have outlives their usefulness or are no longer actionable"
+    case .deletable:
+      return "Deletable is for emails you think the user could delete and never miss."
+    }
+  }
 }
 
 public struct MessagePrompt {

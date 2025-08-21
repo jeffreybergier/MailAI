@@ -23,7 +23,7 @@ import AIInterface
 public struct AppView: View {
   
   @State private var messages = [Message]()
-  @State private var analyses = [String: MessageAnalysis]()
+  @State private var analyses = AIInterface.Analyses()
   
   public init() {}
   public var body: some View {
@@ -89,7 +89,7 @@ internal struct MailImportView: View {
 internal struct AIAnalyzeView: View {
   
   @Binding internal var messagesForAnalysis: [Message]
-  @Binding internal var analyzedMessages: [String: MessageAnalysis]
+  @Binding internal var analyzedMessages: AIInterface.Analyses
   @State private var ai = AIInterface()
   
   internal var body: some View {
