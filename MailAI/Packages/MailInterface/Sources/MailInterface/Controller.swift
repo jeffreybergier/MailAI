@@ -42,6 +42,8 @@ public class MailInterface {
   public var messages = [Message]()
   private var counterFilePresenter: CounterFilePresenter?
   
+  public init() {}
+  
   public func step1_count() {
     do {
       let count = try NSAppleScript.countSelectedMessages()

@@ -17,25 +17,76 @@
 //
 
 import SwiftUI
+import MailInterface
 
 public struct AppView: View {
+  
+  @State private var messages = [Message]()
+  
   public init() {}
   public var body: some View {
     HStack {
-      MailImportView()
-      AIAnalyzeView()
+      MailImportView(importedMessages: self.$messages)
+      AIAnalyzeView(messagesForAnalysis: self.$messages)
       AnalysisStoreView()
     }
   }
 }
 
 internal struct MailImportView: View {
+  
+  @Binding internal var importedMessages: [Message]
+  @State private var mail = MailInterface()
+  
   internal var body: some View {
-    Color.yellow
+    HStack {
+      Spacer()
+      VStack {
+        self.actionButton
+        self.resetButton
+      }
+      Spacer()
+    }
+    .onChange(of: self.mail.messages) { _, newValue in
+      self.importedMessages = newValue
+    }
+  }
+  
+  @ViewBuilder private var actionButton: some View {
+    switch self.mail.status {
+    case .notStarted:
+      Button("Count Selected Messages") {
+        self.mail.step1_count()
+      }
+    case .counted(let messages):
+      if messages == 0 {
+        Text("No Messages Selected")
+      } else {
+        Button("Import: \(messages) messages") {
+          self.mail.step2_import()
+        }
+      }
+    case .importing(let completed, let total):
+      ProgressView("Importing Messages", value: completed, total: total)
+    case .imported(let count):
+      Text("Imported: \(count) messages")
+    case .error(let error):
+      Text(String(describing: error))
+    }
+  }
+  
+  private var resetButton: some View {
+    Button("Reset") {
+      self.mail.reset()
+    }
+    .disabled(self.mail.status.isImporting)
   }
 }
 
 internal struct AIAnalyzeView: View {
+  
+  @Binding internal var messagesForAnalysis: [Message]
+  
   internal var body: some View {
     Color.blue
   }
