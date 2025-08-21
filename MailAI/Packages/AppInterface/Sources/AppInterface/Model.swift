@@ -15,3 +15,18 @@
 // You should have received a copy of the GNU General Public License
 // along with MailAI. If not, see <https://www.gnu.org/licenses/>.
 //
+
+import AIInterface
+import MailInterface
+
+extension Message {
+  internal var promptValue: MessagePrompt {
+    .init(id: self.id,
+          usersNames: MessagePrompt.defaultNoneProvided,
+          usersEmails: MessagePrompt.defaultNoneProvided,
+          usersDescription: MessagePrompt.defaultNoneProvided,
+          subject: self.subject,
+          content: self.content,
+          headers: self.headers)
+  }
+}

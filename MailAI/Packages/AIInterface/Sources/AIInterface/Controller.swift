@@ -12,7 +12,7 @@ public class AIInterface {
     case unknown
     case ready
     case analyzing(complete: Double, total: Double)
-    case analyzed
+    case analyzed(Int)
     case unavailable(SystemLanguageModel.Availability.UnavailableReason)
     case error(Error)
     public var isAnalyzing: Bool {
@@ -56,8 +56,8 @@ public class AIInterface {
     default:
       break
     }
-    let total = Double(prompts.count)
-    self.status = .analyzing(complete: 0, total: total)
+    let total = prompts.count
+    self.status = .analyzing(complete: 0, total: Double(total))
     Task {
       let model = LanguageModelSession(instructions: self.instructions)
       for (idx, prompt) in prompts.enumerated() {
@@ -65,12 +65,13 @@ public class AIInterface {
           let response = try await model.respond(to: prompt.stringValue,
                                                  generating: MessageAnalysis.self)
           self.analyzed[prompt.id] = response.content
-          self.status = .analyzing(complete: Double(idx+1), total: total)
+          self.status = .analyzing(complete: Double(idx+1), total: Double(total))
         } catch {
           self.status = .error(error)
           break
         }
       }
+      self.status = .analyzed(total)
     }
   }
   

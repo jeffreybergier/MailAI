@@ -18,16 +18,19 @@
 
 import SwiftUI
 import MailInterface
+import AIInterface
 
 public struct AppView: View {
   
   @State private var messages = [Message]()
+  @State private var analyses = [String: MessageAnalysis]()
   
   public init() {}
   public var body: some View {
     HStack {
       MailImportView(importedMessages: self.$messages)
-      AIAnalyzeView(messagesForAnalysis: self.$messages)
+      AIAnalyzeView(messagesForAnalysis: self.$messages,
+                    analyzedMessages: self.$analyses)
       AnalysisStoreView()
     }
   }
@@ -86,9 +89,53 @@ internal struct MailImportView: View {
 internal struct AIAnalyzeView: View {
   
   @Binding internal var messagesForAnalysis: [Message]
+  @Binding internal var analyzedMessages: [String: MessageAnalysis]
+  @State private var ai = AIInterface()
   
   internal var body: some View {
-    Color.blue
+    HStack {
+      Spacer()
+      VStack {
+        self.actionButton
+        self.resetButton
+      }
+      Spacer()
+    }
+    .onChange(of: self.ai.analyzed) { _, newValue in
+      self.analyzedMessages = newValue
+    }
+  }
+  
+  @ViewBuilder private var actionButton: some View {
+    switch self.ai.status {
+    case .unknown:
+      Button("Check AI Readiness") {
+        self.ai.step1_checkReadiness()
+      }
+    case .ready:
+      if self.messagesForAnalysis.isEmpty {
+        Text("No Messages to Analyze")
+      } else {
+        Button("Analyze \(self.messagesForAnalysis.count) Message(s)") {
+          self.ai.step2_analyze(prompts: self.messagesForAnalysis.map { $0.promptValue })
+        }
+      }
+    case .analyzing(complete: let complete, total: let total):
+      ProgressView("Analyzing Messages", value: complete, total: total)
+    case .analyzed(let count):
+      Text("Analyzed: \(count) message(s)")
+    case .unavailable(let error):
+      Text("Unavailable: \(String(describing: error))")
+    case .error(let error):
+      Text(String(describing: error))
+    }
+  }
+  
+  private var resetButton: some View {
+    Button("Reset") {
+      self.ai.reset()
+    }
+    .disabled(self.ai.status.isAnalyzing)
   }
 }
 
